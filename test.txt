@@ -1,2 +1,10 @@
 python3 manage.py runserver 0.0.0.0:8000
-python3 manage.py startapp //创建管理员页面
+python3 manage.py startapp //创建管理员页i
+python3 manage.py createsuperuser //超级用户
+python3 -m venv venv //安装虚拟环境
+source venv/bin/activate 激活虚拟环境
+uwsgi --http :8000 --module wuliuyun.wsgi  //启动
+sudo ln -s /etc/nginx/sites-available/wuliuyun /etc/nginx/sites-enabled/ //链接
+sudo service nginx start
+
+

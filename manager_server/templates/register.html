@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>用户注册</title>
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+            .container { max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; }
+            input { width: 90%; padding: 10px; margin: 10px 0; }
+            button { padding: 10px 20px; cursor: pointer; }
+        </style>
+    </head>
+    <body>
+
+        <div class="container">
+            <h2>注册</h2>
+            <form id="registerForm">
+                <input type="text" id="username" placeholder="用户名" required>
+                <input type="password" id="password" placeholder="密码" required>
+                {% csrf_token %} <!-- Django 的 CSRF Token -->
+                <button type="submit">注册</button>
+            </form>
+            <p id="registerStatus"></p>
+        </div>
+
+        <script>
+            document.getElementById("registerForm").addEventListener("submit", function(event) {
+                event.preventDefault();  // 阻止表单刷新
+                let username = document.getElementById("username").value;
+                let password = document.getElementById("password").value;
+                
+                // 获取 CSRF Token
+                let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                // 发送注册请求
+                fetch("/register/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,  // 添加 CSRF Token
+                    },
+                    body: JSON.stringify({ username, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("registerStatus").innerText = data.message;
+                    if (data.status === "success") {
+                        setTimeout(() => window.location.href = "/login/", 2000);  // 2秒后跳转到登录页
+                    }
+                })
+                .catch(error => console.error("注册失败:", error));
+            });
+        </script>
+
+    </body>
+</html>
+
+

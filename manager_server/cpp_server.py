@@ -13,6 +13,11 @@ class CppClient:
         """ 获取连接，如果不存在则创建新的连接 """
         if not self.socket:  # 如果连接还没有建立
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+             # 确保 self.server_address 是 tuple 类型
+            if isinstance(self.server_address, list):
+                self.server_address = tuple(self.server_address)
+
             try:
                 self.socket.connect(self.server_address)
                 print(f"[CppClient] 用户 {self.user_id} 成功连接到服务器 {self.server_address}")
@@ -20,6 +25,7 @@ class CppClient:
                 print(f"[CppClient] 用户 {self.user_id} 连接失败: {e}")
                 self.socket = None
         return self.socket
+
 
     def receive_until_star(self, conn, chunk_size=8192):
         """接收直到遇到 '*' 字符"""
@@ -38,12 +44,14 @@ class CppClient:
 
     def send_request(self, message_type, body_dict: dict):
         try:
+          
             conn = self.get_connection()  # 获取连接
+           
             if not conn:
                 raise Exception("无法建立与服务器的连接")
 
             # 构造消息体
-            body_str = json.dumps({"body": body_dict})
+            body_str = json.dumps({"body": body_dict})  
             pdu = PDU(message_type, body_str, '1.0')
             message = pdu.serialize()
 

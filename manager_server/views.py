@@ -78,17 +78,18 @@ def login_page(request):
                 if user_id:
                     request.session['user_id'] = user_id
                     request.session['cpp_client'] = cpp_client_to_json(cpp_client)
+                    request.session['names']=username
                     
                     # 从登录响应中获取文件系统数据
                     file_system_data = login_response.get('file_list')
-                    print("准备返回的文件系统数据:", file_system_data)  # 调试日志
+                   
                     
                     response_data = {
                         'status': 'success',
                         'message': '登录成功',
                         'fileSystemData': file_system_data
                     }
-                    print("完整的响应数据:", response_data)  # 调试日志
+             
                     return JsonResponse(response_data)
                 else:
                     return JsonResponse({'status': 'error', 'message': '用户ID不存在'})
@@ -159,3 +160,69 @@ def logout_view(request):
         return JsonResponse({'success': False, 'msg': '没有找到登录连接'})
 
     
+@csrf_exempt
+def down_file(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            data["local_file_path"] = "web"  #区分web端 qt端需要回传地址
+            data["names"]=request.session.get('names')
+            folder_id = data.get("folder_id")
+            file_name = data.get("file_name")
+            user_id = request.session.get('user_id')
+
+          
+            if not user_id:
+                return JsonResponse({'status': 'error', 'message': '用户未登录'})
+            cpp_client_json = request.session.get('cpp_client')
+            cpp_client = cpp_client_from_json(cpp_client_json)
+          
+            if not cpp_client:
+                return JsonResponse({'status': 'error', 'message': '用户连接无效'})
+
+            response_PDU = cpp_client.send_request(MessageType.DOWNLOAD_FILE, data)
+            response=json.loads(response_PDU.body)
+      
+            presigned_url =response.get('url')
+            print(presigned_url)
+
+            return JsonResponse({
+                "status": "success",
+                "download_url": presigned_url
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'服务器内部错误: {str(e)}'})
+@csrf_exempt
+def share_file(request):
+    if request.method == 'POST':
+        try:
+            print("t1")
+            data = json.loads(request.body)
+            
+            data["local_file_path"] = "web"  #区分web端 qt端需要回传地址
+            data["names"]=request.session.get('names')
+            folder_id = data.get("folder_id")
+            file_name = data.get("file_name")
+            user_id = request.session.get('user_id')
+
+        
+            if not user_id:
+                return JsonResponse({'status': 'error', 'message': '用户未登录'})
+            cpp_client_json = request.session.get('cpp_client')
+            cpp_client = cpp_client_from_json(cpp_client_json)
+          
+            if not cpp_client:
+                return JsonResponse({'status': 'error', 'message': '用户连接无效'})
+            
+
+            response_PDU = cpp_client.send_request(MessageType.SHARE_FILE, data)
+            response=json.loads(response_PDU.body)
+            presigned_url =response.get('url')
+            print(presigned_url)
+            return JsonResponse({
+                "status": "success",
+                "share_url": presigned_url
+            })
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'服务器内部错误: {str(e)}'})

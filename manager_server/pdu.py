@@ -22,6 +22,7 @@ class MessageType(Enum):
     DELETE_FOLDER = 0x18
     PASTE_FILE = 0x19
     REGISTER = 0x20
+    SHARE_FILE=0x21
 
 
 class PDU:
